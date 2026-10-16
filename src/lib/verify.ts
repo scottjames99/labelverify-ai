@@ -4,11 +4,28 @@ export type Finding={field:string,expected:string,observed:string,status:"match"
 export const WARNING="GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.";
 const clean=(s:string)=>s.normalize("NFKC").toLocaleLowerCase("en-US").replace(/[’‘]/g,"'").replace(/[^a-z0-9]+/g," ").trim();
 const number=(s:string)=>{const x=s.match(/\d+(?:\.\d+)?/);return x?Number(x[0]):null};
+type Quantity={ml:number,unit:"ml"|"l"|"fl oz"|"us qt"};
+function quantities(value:string):Quantity[]{
+ const matches=[...value.matchAll(/(\d+(?:\.\d+)?)\s*(millilit(?:er|re)s?|ml|lit(?:er|re)s?|l|fl\.?\s*oz\.?|fluid\s*ounces?|us\s*quarts?|quarts?|qts?)(?![a-z])/gi)];
+ return matches.map(match=>{
+  const amount=Number(match[1]);const unit=match[2].toLowerCase().replace(/\./g,"").replace(/\s+/g," ").trim();
+  if(unit==="ml"||unit.startsWith("millilit"))return {ml:amount,unit:"ml" as const};
+  if(unit==="l"||unit.startsWith("lit"))return {ml:amount*1000,unit:"l" as const};
+  if(unit.includes("oz")||unit.includes("ounce"))return {ml:amount*29.5735295625,unit:"fl oz" as const};
+  return {ml:amount*946.352946,unit:"us qt" as const};
+ });
+}
+function volumeEqual(expected:string,observed:string):boolean|null{
+ const left=quantities(expected),right=quantities(observed);
+ if(!left.length||!right.length)return null;
+ return left.some(a=>right.some(b=>Math.abs(a.ml-b.ml)<=Math.max(1,a.ml*0.005)));
+}
 function field(name:string,expected:string,observed:string|null,mode:"text"|"abv"|"volume"="text"):Finding{
  if(!expected.trim())return {field:name,expected:"Not provided",observed:observed||"Not found",status:"review",reason:"Application value not supplied"};
  if(!observed)return {field:name,expected,observed:"Not found",status:"review",reason:"Could not confidently extract this field"};
  let equal=clean(expected)===clean(observed);
- if(mode!=="text"){const a=number(expected),b=number(observed);equal=a!==null&&b!==null&&Math.abs(a-b)<0.001;}
+ if(mode==="abv"){const a=number(expected),b=number(observed);equal=a!==null&&b!==null&&Math.abs(a-b)<0.001;}
+ if(mode==="volume"){const comparison=volumeEqual(expected,observed);if(comparison===null)return {field:name,expected,observed,status:"review",reason:"Could not identify comparable volume units"};equal=comparison;}
  return {field:name,expected,observed,status:equal?"match":"mismatch",reason:equal?"Values agree":"Application and artwork differ"};
 }
 export function verify(app:Application,ex:Extracted):Finding[]{
