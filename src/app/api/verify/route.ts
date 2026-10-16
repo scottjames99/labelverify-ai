@@ -27,8 +27,12 @@ export async function POST(request:NextRequest){
     input:[{type:"image_url",image_url:{url:`data:${file.type};base64,${encoded}`}}],
    });
   }catch(error){
-   console.error("Image moderation unavailable",error);
-   return NextResponse.json({error:"Image safety screening is unavailable. Please try again later.",code:"MODERATION_UNAVAILABLE"},{status:503});
+   const status=error instanceof OpenAI.APIError?error.status:undefined;
+   const requestId=error instanceof OpenAI.APIError?error.requestID:undefined;
+   const cause=error instanceof Error?error.name:"UnknownError";
+   console.error("Image moderation unavailable",{status,requestId,cause,message:error instanceof Error?error.message:"Unknown moderation error"});
+   const reason=status===401?"The server API key was rejected. Check the Vercel OPENAI_API_KEY value.":status===403?"The API key does not have access to Moderations. Check key permissions and save the changes.":status===429?"The moderation API is rate limited. Please retry shortly.":status===400?"The moderation service rejected this image request.":cause==="APIConnectionTimeoutError"?"Image safety screening timed out. Please retry.":"Image safety screening is unavailable. Please try again later.";
+   return NextResponse.json({error:reason,code:"MODERATION_UNAVAILABLE",requestId:requestId||undefined},{status:503});
   }
   const safety=moderation.results[0];
   if(!safety)return NextResponse.json({error:"Image safety screening could not complete. Please retry.",code:"MODERATION_UNAVAILABLE"},{status:503});
