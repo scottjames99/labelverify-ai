@@ -2,6 +2,17 @@
 
 Human-in-the-loop alcohol label verification prototype.
 
+**Live demo:** https://labelverify-ai.vercel.app/
+
+## Submission overview
+
+**Approach:** Reviewers enter the information claimed in an application and upload label artwork. OpenAI vision extracts visible label information; deterministic TypeScript rules compare it against application values and flag matches, discrepancies, and uncertain findings for human review. The app supports multiple uploads, JSON export, and browser-local verification history.
+
+**Tools:** Next.js 16, React 19, TypeScript, Tailwind CSS, OpenAI GPT-4.1-mini (vision), Zod, Vitest, GitHub, and Vercel.
+
+**Assumptions:** This is a standalone demonstration, not a connection to TTB COLA infrastructure. AI output is advisory, and a human reviewer makes final decisions. Input images should be legible and non-sensitive; not every beverage-specific rule is implemented. Saved history is local to the browser, not an official audit record.
+
+
 ## Features
 
 - Review PNG, JPEG, and WebP alcohol-label artwork (single or multiple files).
@@ -9,6 +20,7 @@ Human-in-the-loop alcohol label verification prototype.
 - Deterministic field comparisons and individual match/mismatch/review findings.
 - Exact government health-warning text check, with advisory checks for heading uppercase, bold appearance and legibility.
 - Batch results and JSON export.
+- Searchable browser-local verification history (up to 50 saved results), with reopening, filtering, and deletion; original images are not retained.
 - Processing time displayed for every image.
 
 ## Local development
@@ -37,13 +49,13 @@ Import the repository in Vercel, select Next.js, configure `OPENAI_API_KEY` as a
 
 ## Design decisions
 
-AI transcribes and describes the label; explicit comparison rules generate the verdict. Uncertain extraction must be reviewed by a person and never silently passes. Brand capitalization differences are ignored; the government warning is evaluated for exact words and heading format separately. Batch processing runs sequentially and streams completed responses into the results view. The model's claims about visual characteristics are advisory, not proof of conformity.
+AI transcribes and describes the label; explicit comparison rules generate the verdict. Uncertain extraction must be reviewed by a person and never silently passes. Brand capitalization differences are ignored; the government warning is evaluated for exact words and heading format separately. Batch processing runs sequentially and streams completed responses into the results view. The model's claims about visual characteristics are advisory, not proof of conformity. Warning wording comparison tolerates OCR capitalization differences while checking heading capitalization separately. Verification history uses browser localStorage, so records are not synchronized between browsers or devices.
 
 ## Limitations and trade-offs
 
 - Does not approve COLAs or implement all beverage-specific TTB regulations.
 - PNG/JPG/WebP only; PDF artwork must first be converted to an image.
-- Numeric net-content and ABV comparisons do not fully normalize units, proof-only expressions, or other complex label variants.
+- Net contents support common mL, L, US fluid-ounce and quart equivalences, but not every unit or complex label variant. ABV comparison does not normalize proof-only expressions.
 - Warning extraction can be imperfect; placement, minimum text size and artwork layout require human review.
 - Missing country-of-origin data does not mean the origin requirement is inapplicable.
 - No direct COLA integration, authentication, server-side records or audit retention policy.
