@@ -15,7 +15,7 @@ export function verify(app:Application,ex:Extracted):Finding[]{
  const results=[field("Brand",app.brand,ex.brand),field("Class / type",app.type,ex.type),field("ABV",app.abv,ex.abv,"abv"),field("Net contents",app.volume,ex.volume,"volume"),field("Producer / bottler",app.producer,ex.producer)];
  if(app.origin.trim())results.push(field("Country of origin",app.origin,ex.origin));
  const warning=ex.warning;
- const warningCorrect=warning?warning.replace(/\s+/g," ").trim()===WARNING:false;
+ const warningCorrect=warning?warning.replace(/\s+/g," ").trim().toLocaleLowerCase("en-US")===WARNING.toLocaleLowerCase("en-US"):false;
  results.push({field:"Government warning text",expected:WARNING,observed:warning||"Not found",status:!warning?"review":warningCorrect?"match":"mismatch",reason:!warning?"Warning not legible or missing":warningCorrect?"Exact text confirmed":"Exact required wording not confirmed"});
  for(const [name,value] of [["Uppercase heading",ex.warningHeadingUppercase],["Bold heading",ex.warningHeadingBold],["Warning legibility",ex.warningLegible]] as const)results.push({field:name,expected:"Yes",observed:value===null?"Unknown":value?"Yes":"No",status:value===null?"review":value?"match":"mismatch",reason:value===null?"Human visual confirmation required":value?"Visual check passed":"Required visual characteristic not confirmed"});
  return results;
