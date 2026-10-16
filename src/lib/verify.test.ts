@@ -1,0 +1,5 @@
+import {describe,it,expect} from "vitest";
+import {verify,verdict,WARNING,type Application,type Extracted} from "./verify";
+const app:Application={brand:"Stone's Throw",type:"Bourbon",abv:"45%",volume:"750 mL",producer:"Acme",origin:"",beverage:"spirits"};
+const ex:Extracted={brand:"STONE’S THROW",type:"Bourbon",abv:"45% Alc./Vol.",volume:"750mL",producer:"Acme",origin:null,warning:WARNING,warningHeadingUppercase:true,warningHeadingBold:true,warningLegible:true,notes:[]};
+describe("verification rules",()=>{it("ignores case and apostrophe styling",()=>expect(verify(app,ex)[0].status).toBe("match"));it("checks ABV numerically",()=>expect(verify(app,{...ex,abv:"46% Alc./Vol."})[2].status).toBe("mismatch"));it("never passes a missing warning",()=>expect(verdict(verify(app,{...ex,warning:null}))).toBe("review"));it("requires exact warning wording",()=>expect(verdict(verify(app,{...ex,warning:"GOVERNMENT WARNING: wrong"}))).toBe("fail"));it("does not trust uncertain bold formatting",()=>expect(verdict(verify(app,{...ex,warningHeadingBold:null}))).toBe("review"));});
