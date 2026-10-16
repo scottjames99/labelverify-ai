@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+<rect width="1200" height="720" fill="#ffffff"/><rect x="0" y="60" width="1200" height="600" fill="#970019"/><rect x="14" y="74" width="1172" height="572" fill="#e4b64c" stroke="#970019" stroke-width="9"/>
+<rect x="166" y="122" width="870" height="435" rx="120" fill="#970019" stroke="#e4b64c" stroke-width="16"/>
+<g fill="#fff" font-family="Georgia,serif" font-weight="bold" text-anchor="middle"><text x="600" y="240" font-size="94">OLDE</text><text x="600" y="346" font-size="110">ENGLISH</text><text x="600" y="453" font-size="120">“800”</text></g>
+<g fill="#970019" font-family="Arial,sans-serif" font-weight="bold" text-anchor="middle"><text x="600" y="596" font-size="55">MALT LIQUOR</text><text x="600" y="633" font-size="30">ONE QUART • 32 FL. OZ. (946 ml)</text></g>
+<text x="1050" y="625" fill="#970019" font-size="29" font-weight="bold" font-family="Arial">7.5% ALC/VOL</text>
+<g transform="translate(58 585) rotate(-90)" font-family="Arial" fill="#970019"><text x="0" y="0" font-size="23" font-weight="bold">MILWAUKEE, U.S.A.</text><text x="0" y="26" font-size="17">BREWED AND BOTTLED IN MILWAUKEE, U.S.A.</text></g>
+<g transform="translate(1140 612) rotate(-90)" font-family="Arial" fill="#970019"><text x="0" y="0" font-size="16" font-weight="bold">GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages</text><text x="0" y="19" font-size="16">during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability</text><text x="0" y="38" font-size="16">to drive a car or operate machinery, and may cause health problems.</text></g>
+</svg>
