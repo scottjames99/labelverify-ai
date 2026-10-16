@@ -35,6 +35,12 @@ LabelVerify AI helps a reviewer compare **submitted application details** with *
 | 📤 **JSON export** | Downloads structured findings for further inspection |
 | ⏱️ **Timing** | Displays processing time for each image |
 
+## 🖥️ Application preview
+
+[![LabelVerify AI live application preview](https://image.thum.io/get/width/1200/noanimate/https://labelverify-ai.vercel.app/)](https://labelverify-ai.vercel.app/)
+
+*Live homepage preview. Select the image to open the working prototype. The app provides application-detail inputs, artwork upload, field-by-field verification results, and saved browser-local history.*
+
 ## 🧭 How it works
 
 ```text
