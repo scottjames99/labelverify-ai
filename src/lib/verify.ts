@@ -28,9 +28,20 @@ function field(name:string,expected:string,observed:string|null,mode:"text"|"abv
  if(mode==="volume"){const comparison=volumeEqual(expected,observed);if(comparison===null)return {field:name,expected,observed,status:"review",reason:"Could not identify comparable volume units"};equal=comparison;}
  return {field:name,expected,observed,status:equal?"match":"mismatch",reason:equal?"Values agree":"Application and artwork differ"};
 }
+function originFinding(expected:string,observed:string|null):Finding{
+ if(!expected.trim()||!observed)return field("Country of origin",expected,observed);
+ const normalized=clean(observed);
+ const expectedUs=/^(usa|u s a|united states|united states of america|us)$/.test(clean(expected));
+ const hasUsCountry=/(?:^|\\s)(?:usa|u s a|united states(?: of america)?)(?:$|\\s)/.test(normalized);
+ const isLocation=/\\b(?:milwaukee|[a-z]+(?:\\s+[a-z]+)?)\\s*,?\\s*(?:u\\s*s\\s*a|usa|united states)\\b/i.test(observed);
+ const unionOnly=/\\bunion\\s+made\\s+(?:u\\s*\\.?\\s*s\\s*\\.?\\s*a\\.?|usa)\\b/i.test(observed)&&!isLocation;
+ if(unionOnly)return {field:"Country of origin",expected,observed,status:"review",reason:"Union-made wording alone does not establish country of origin"};
+ if(expectedUs&&hasUsCountry&&isLocation)return {field:"Country of origin",expected,observed,status:"match",reason:"Country matches the country shown in the location statement; regulatory sufficiency requires human review"};
+ return field("Country of origin",expected,observed);
+}
 export function verify(app:Application,ex:Extracted):Finding[]{
  const results=[field("Brand",app.brand,ex.brand),field("Class / type",app.type,ex.type),field("ABV",app.abv,ex.abv,"abv"),field("Net contents",app.volume,ex.volume,"volume"),field("Producer / bottler",app.producer,ex.producer)];
- if(app.origin.trim())results.push(field("Country of origin",app.origin,ex.origin));
+ if(app.origin.trim())results.push(originFinding(app.origin,ex.origin));
  const warning=ex.warning;
  const warningCorrect=warning?warning.replace(/\s+/g," ").trim().toLocaleLowerCase("en-US")===WARNING.toLocaleLowerCase("en-US"):false;
  results.push({field:"Government warning text",expected:WARNING,observed:warning||"Not found",status:!warning?"review":warningCorrect?"match":"mismatch",reason:!warning?"Warning not legible or missing":warningCorrect?"Exact text confirmed":"Exact required wording not confirmed"});
