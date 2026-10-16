@@ -55,3 +55,8 @@ AI transcribes and describes the label; explicit comparison rules generate the v
 ## Engineering verification
 
 Automated unit tests cover case-insensitive brand matching, incorrect ABV, missing or altered government warnings, and ambiguous bold typography. Before real deployment, add a curated gold-standard image dataset and measure accuracy and latency across glare, skew and low-resolution cases.
+
+
+## Image safety screening
+
+Before AI label extraction, the verification endpoint checks uploaded PNG, JPEG, and WebP artwork with OpenAI's `omni-moderation-latest` image moderation model. Flagged images are rejected with a clear message and are not included in verification history. If moderation is unavailable, verification stops rather than bypassing the safety check. The existing `OPENAI_API_KEY` is reused; **restricted keys must have permission to call the Moderations endpoint**. No separate API key, database, or service is required. Automated moderation can make mistakes and does not guarantee detection of every inappropriate image.

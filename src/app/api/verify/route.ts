@@ -18,6 +18,23 @@ export async function POST(request:NextRequest){
   const application=formSchema.safeParse(JSON.parse(String(data.get("application")||"{}")));if(!application.success)return NextResponse.json({error:"Invalid application information."},{status:400});
   const encoded=Buffer.from(await file.arrayBuffer()).toString("base64");
   const client=new OpenAI({apiKey:process.env.OPENAI_API_KEY,timeout:18000,maxRetries:0});
+  // Moderate the uploaded image before sending it for label extraction.
+  // A failed moderation request blocks verification rather than silently bypassing screening.
+  let moderation;
+  try{
+   moderation=await client.moderations.create({
+    model:"omni-moderation-latest",
+    input:[{type:"image_url",image_url:{url:`data:${file.type};base64,${encoded}`}}],
+   });
+  }catch(error){
+   console.error("Image moderation unavailable",error);
+   return NextResponse.json({error:"Image safety screening is unavailable. Please try again later.",code:"MODERATION_UNAVAILABLE"},{status:503});
+  }
+  const safety=moderation.results[0];
+  if(!safety)return NextResponse.json({error:"Image safety screening could not complete. Please retry.",code:"MODERATION_UNAVAILABLE"},{status:503});
+  if(safety.flagged||safety.categories["sexual"]||safety.categories["sexual/minors"]){
+   return NextResponse.json({error:"This image cannot be processed because it was flagged by the image safety check.",code:"IMAGE_REJECTED"},{status:422});
+  }
   const response=await client.chat.completions.create({model:process.env.OPENAI_MODEL||"gpt-4.1-mini",temperature:0,response_format:{type:"json_object"},messages:[{role:"system",content:`Extract alcohol-label artwork evidence conservatively. Reply with JSON only, keys brand,type,abv,volume,producer,origin,warning,warningHeadingUppercase,warningHeadingBold,warningLegible,notes. Use null whenever unclear or not visible. For warning, return the exact visible words and punctuation, preserving heading capitalization, not a paraphrase. Never reconstruct missing warning words from memory. Visual flags are true only with clear visual evidence. Warning to compare against: ${WARNING}`},{role:"user",content:[{type:"text",text:"Read this label image. Do not invent any missing text. If multiple sides are not shown, report missing elements as null."},{type:"image_url",image_url:{url:`data:${file.type};base64,${encoded}`,detail:"high"}}]}]});
   const raw=response.choices[0]?.message?.content;if(!raw)throw new Error("AI returned no extraction");
   const modelJson:unknown=JSON.parse(raw);
